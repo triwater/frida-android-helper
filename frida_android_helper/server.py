@@ -5,26 +5,23 @@ from frida_android_helper.utils import *
 
 FRIDA_INSTALL_DIR = "/data/local/tmp/"
 FRIDA_BIN_NAME = "frida-server"
-FRIDA_LATEST_RELEASE_URL = "https://api.github.com/repos/frida/frida/releases/latest"
+# FRIDA_LATEST_RELEASE_URL = "https://api.github.com/repos/frida/frida/releases/latest"
+FRIDA_VERSION = "14.2.17"
 
 
 def download_latest_frida(device: Device):
-    latest_release = requests.get(FRIDA_LATEST_RELEASE_URL).json()
+    # latest_release = requests.get(FRIDA_LATEST_RELEASE_URL).json()
     arch = get_architecture(device)
-
-    for asset in latest_release['assets']:
-        release_name = asset['name']
-        if "server" in release_name and "android-{}.xz".format(arch) in release_name:
-            eprint("⚡ Downloading {}...".format(release_name))
-            xz_file = requests.get(asset['browser_download_url'])
-
-            eprint("⚡ Extracting {}...".format(release_name))
-            server_binary = lzma.decompress(xz_file.content)
-
-            eprint("⚡ Writing {}...".format(release_name))
-            with open(release_name[:-3], "wb") as f:  # remove extension
-                f.write(server_binary)
-            return release_name[:-3]
+    release_name = "frida-server-{}-android-{}.xz".format(FRIDA_VERSION, arch)
+    download_url = "https://github.com/frida/frida/releases/download/{}/{}".format(FRIDA_VERSION, release_name)
+    eprint("⚡ Downloading {}...".format(download_url))
+    xz_file = requests.get(download_url)
+    eprint("⚡ Extracting {}...".format(release_name))
+    server_binary = lzma.decompress(xz_file.content)
+    eprint("⚡ Writing {}...".format(release_name))
+    with open(release_name[:-3], "wb") as f:  # remove extension
+        f.write(server_binary)
+    return release_name[:-3]
 
 
 def launch_frida_server(device: Device):
